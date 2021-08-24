@@ -1,4 +1,6 @@
 import mount_sd
+import epd
+
 import time
 import board
 import digitalio
@@ -18,6 +20,15 @@ minTemp = None
 i2c = busio.I2C(scl=PINS_I2C_CLOCK, sda=PINS_I2C_DATA)
 rtc = adafruit_ds1307.DS1307(i2c)
 
+def getLastUpdatedStr(t):
+    return "%d%02d%02d %02d:%02d" % (
+        t.tm_year,
+        t.tm_mon,
+        t.tm_mday,
+        t.tm_hour,
+        t.tm_min,
+    )
+
 days = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 
 if False:  # change to True if you want to write the time!
@@ -30,11 +41,14 @@ if False:  # change to True if you want to write the time!
     rtc.datetime = t
 
 t = rtc.datetime
-startTime = "%s %02d-%02d-%d @ %d:%02d:%02d" % (
+startDateStr = "%s %02d-%02d-%d" % (
     days[t.tm_wday],
     t.tm_mon,
     t.tm_mday,
     t.tm_year,
+)
+
+startTimeStr = "%d:%02d:%02d" % (
     t.tm_hour,
     t.tm_min,
     t.tm_sec,
@@ -48,9 +62,13 @@ csvFilename = "%d%02d%02d%02d%02d%02d.csv" % (
     t.tm_min,
     t.tm_sec,
 )
+print(t)
 
-print("Starting %s" % (startTime))
+print("Starting %s @ %s" % (startDateStr, startTimeStr))
 mount_sd.createLogFile(csvFilename)
+
+epd.updateDisplay(startDateStr, startTimeStr, getLastUpdatedStr(t), 77, 66, 88)
+
 
 while True:
     t = rtc.datetime
