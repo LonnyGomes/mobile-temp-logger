@@ -93,7 +93,13 @@ def updateDisplay(startDateStr, startTimeStr, lastUpdatedStr, curTemp, minTemp, 
 
     epd.show(g)
 
-    epd.refresh()
+    while epd.busy:
+        pass
+
+    try:
+        epd.refresh()
+    except:
+        print("Failed to refresh display")
 
     # (optional) wait until display is fully updated
     while epd.busy:

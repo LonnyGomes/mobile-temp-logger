@@ -12,6 +12,9 @@ import microcontroller
 PINS_I2C_DATA = board.GP2
 PINS_I2C_CLOCK = board.GP3
 
+# time in seconds to log data
+LOG_INTERVAL = 60 * 5
+
 # track max/min temps
 maxTemp = None
 minTemp = None
@@ -67,8 +70,7 @@ print(t)
 print("Starting %s @ %s" % (startDateStr, startTimeStr))
 mount_sd.createLogFile(csvFilename)
 
-epd.updateDisplay(startDateStr, startTimeStr, getLastUpdatedStr(t), 77, 66, 88)
-
+#epd.updateDisplay(startDateStr, startTimeStr, getLastUpdatedStr(t), 77, 66, 88)
 
 while True:
     t = rtc.datetime
@@ -99,4 +101,6 @@ while True:
 
     mount_sd.logData(csvFilename, curTimestamp, temp_f)
 
-    time.sleep(5)  # wait a second
+    epd.updateDisplay(startDateStr, startTimeStr, getLastUpdatedStr(t), temp_f, minTemp, maxTemp)
+
+    time.sleep(LOG_INTERVAL)
