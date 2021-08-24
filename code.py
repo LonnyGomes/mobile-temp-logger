@@ -1,3 +1,4 @@
+import mount_sd
 import time
 import board
 import digitalio
@@ -39,7 +40,17 @@ startTime = "%s %02d-%02d-%d @ %d:%02d:%02d" % (
     t.tm_sec,
 )
 
+csvFilename = "%d%02d%02d%02d%02d%02d.csv" % (
+    t.tm_year,
+    t.tm_mon,
+    t.tm_mday,
+    t.tm_hour,
+    t.tm_min,
+    t.tm_sec,
+)
+
 print("Starting %s" % (startTime))
+mount_sd.createLogFile(csvFilename)
 
 while True:
     t = rtc.datetime
@@ -47,12 +58,13 @@ while True:
     # print("The date is %s %d/%d/%d" % (days[t.tm_wday], t.tm_mday, t.tm_mon, t.tm_year))
     # print("The time is %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec))
 
-    curTimestamp = "%d-%02d-%02dT%02d:%02d" % (
+    curTimestamp = "%d-%02d-%02dT%02d:%02d:%02d" % (
         t.tm_year,
         t.tm_mon,
         t.tm_mday,
         t.tm_hour,
         t.tm_min,
+        t.tm_sec,
     )
     temp_c = microcontroller.cpu.temperature
     temp_f = temp_c * (9 / 5) + 32
@@ -66,5 +78,7 @@ while True:
         "Timestamp: %s, Temp cur: %d, max: %d, min: %d"
         % (curTimestamp, temp_f, maxTemp, minTemp)
     )
+
+    mount_sd.logData(csvFilename, curTimestamp, temp_f)
 
     time.sleep(5)  # wait a second
