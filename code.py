@@ -1,5 +1,6 @@
 import mount_sd
 import epd
+import dht
 
 import time
 import board
@@ -13,7 +14,7 @@ PINS_I2C_DATA = board.GP2
 PINS_I2C_CLOCK = board.GP3
 
 # time in seconds to log data
-LOG_INTERVAL = 60 * 5
+LOG_INTERVAL = 60 * 6
 
 # track max/min temps
 maxTemp = None
@@ -23,6 +24,7 @@ minTemp = None
 i2c = busio.I2C(scl=PINS_I2C_CLOCK, sda=PINS_I2C_DATA)
 rtc = adafruit_ds1307.DS1307(i2c)
 
+
 def getLastUpdatedStr(t):
     return "%d%02d%02d %02d:%02d" % (
         t.tm_year,
@@ -31,6 +33,14 @@ def getLastUpdatedStr(t):
         t.tm_hour,
         t.tm_min,
     )
+
+
+def readOnboardTemp():
+    temp_c = microcontroller.cpu.temperature
+    temp_f = temp_c * (9 / 5) + 32
+
+    return temp_f
+
 
 days = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 
@@ -70,7 +80,7 @@ print(t)
 print("Starting %s @ %s" % (startDateStr, startTimeStr))
 mount_sd.createLogFile(csvFilename)
 
-#epd.updateDisplay(startDateStr, startTimeStr, getLastUpdatedStr(t), 77, 66, 88)
+# epd.updateDisplay(startDateStr, startTimeStr, getLastUpdatedStr(t), 77, 66, 88)
 
 while True:
     t = rtc.datetime
@@ -86,21 +96,36 @@ while True:
         t.tm_min,
         t.tm_sec,
     )
-    temp_c = microcontroller.cpu.temperature
-    temp_f = temp_c * (9 / 5) + 32
-    if maxTemp is None or temp_f > maxTemp:
+
+    # read from external temperature sensor
+    temp_ext, humid_ext = dht.readSensor()
+
+    # read from onput pico sensor
+    temp_f = readOnboardTemp()
+
+    # determine the max/min temps based on all sensors
+    if maxTemp is None:
         maxTemp = temp_f
 
-    if minTemp is None or temp_f < minTemp:
+    if minTemp is None:
         minTemp = temp_f
 
+    if temp_ext is None:
+        maxTemp = max(maxTemp, temp_f)
+        minTemp = min(maxTemp, temp_f)
+    else:
+        maxTemp = max(maxTemp, temp_f, temp_ext)
+        minTemp = min(maxTemp, temp_f, temp_ext)
+
     print(
-        "Timestamp: %s, Temp cur: %d, max: %d, min: %d"
-        % (curTimestamp, temp_f, maxTemp, minTemp)
+        "Timestamp: %s, internal: %d, ext temp: %d, max: %d, min: %d, hum: %d"
+        % (curTimestamp, temp_f, temp_ext, maxTemp, minTemp, humid_ext)
     )
 
-    mount_sd.logData(csvFilename, curTimestamp, temp_f)
+    mount_sd.logData(csvFilename, curTimestamp, temp_f, temp_ext, humid_ext)
 
-    epd.updateDisplay(startDateStr, startTimeStr, getLastUpdatedStr(t), temp_f, minTemp, maxTemp)
+    epd.updateDisplay(
+        startDateStr, startTimeStr, getLastUpdatedStr(t), temp_f, minTemp, maxTemp
+    )
 
     time.sleep(LOG_INTERVAL)

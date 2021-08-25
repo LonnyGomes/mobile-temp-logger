@@ -20,11 +20,13 @@ storage.mount(vfs, "/sd")
 def createLogFile(filename):
     fullPath = "/sd/%s" % (filename)
     with open(fullPath, "w") as f:
+        print("Creating CSV: %s:" % (fullPath))
+
         # create CSV header
-        f.write("timestamp,temperature\n")
+        f.write("timestamp,temp_int,temp_ext,humidty_ext\n")
 
 
-def logData(filename, timestamp, temperature):
+def logData(filename, timestamp, temp_int, temp_ext, humidty_ext):
     fullPath = "/sd/%s" % (filename)
     with open(fullPath, "a") as f:
-        f.write("%s,%s\n" % (timestamp, temperature))
+        f.write("%s,%s,%s,%s\n" % (timestamp, temp_int, temp_ext, humidty_ext))
