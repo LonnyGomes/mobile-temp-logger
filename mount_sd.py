@@ -33,5 +33,5 @@ def logData(
     with open(fullPath, "a") as f:
         f.write(
             "%s,%s,%s,%s,%s,%s\n"
-            % (timestamp, temp_int, temp_ext, humidty_ext, temp_ext, humidty_alt)
+            % (timestamp, temp_int, temp_ext, humidty_ext, temp_alt, humidty_alt)
         )

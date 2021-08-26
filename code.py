@@ -104,26 +104,22 @@ while True:
     # read from bme sensor
     temp_alt, humid_alt = bme.readSensor()
 
-    # read from onput pico sensor
+    # read from onboard pico sensor
     temp_f = readOnboardTemp()
 
-    # determine the max/min temps based on all sensors
+    # determine the max/min temps based on most reliable sensor
     if maxTemp is None:
-        maxTemp = temp_f
+        maxTemp = temp_alt
 
     if minTemp is None:
-        minTemp = temp_f
+        minTemp = temp_alt
 
-    if temp_ext is None:
-        maxTemp = max(maxTemp, temp_f)
-        minTemp = min(minTemp, temp_f)
-    else:
-        maxTemp = max(maxTemp, temp_f, temp_ext)
-        minTemp = min(minTemp, temp_f, temp_ext)
+    maxTemp = max(maxTemp, temp_alt)
+    minTemp = min(minTemp, temp_alt)
 
     print(
         "Timestamp: %s, internal: %d, ext temp: %d, max: %d, min: %d, hum: %d"
-        % (curTimestamp, temp_f, temp_ext, maxTemp, minTemp, humid_ext)
+        % (curTimestamp, temp_f, temp_alt, maxTemp, minTemp, humid_alt)
     )
 
     mount_sd.logData(
