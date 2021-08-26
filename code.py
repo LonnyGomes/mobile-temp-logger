@@ -112,10 +112,10 @@ while True:
 
     if temp_ext is None:
         maxTemp = max(maxTemp, temp_f)
-        minTemp = min(maxTemp, temp_f)
+        minTemp = min(minTemp, temp_f)
     else:
         maxTemp = max(maxTemp, temp_f, temp_ext)
-        minTemp = min(maxTemp, temp_f, temp_ext)
+        minTemp = min(minTemp, temp_f, temp_ext)
 
     print(
         "Timestamp: %s, internal: %d, ext temp: %d, max: %d, min: %d, hum: %d"
@@ -125,7 +125,7 @@ while True:
     mount_sd.logData(csvFilename, curTimestamp, temp_f, temp_ext, humid_ext)
 
     epd.updateDisplay(
-        startDateStr, startTimeStr, getLastUpdatedStr(t), temp_f, minTemp, maxTemp
+        startDateStr, startTimeStr, getLastUpdatedStr(t), max(temp_f, temp_ext), minTemp, maxTemp
     )
 
     time.sleep(LOG_INTERVAL)
