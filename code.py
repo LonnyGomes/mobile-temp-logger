@@ -1,6 +1,7 @@
 import mount_sd
 import epd
 import dht
+import bme
 
 import time
 import board
@@ -100,6 +101,9 @@ while True:
     # read from external temperature sensor
     temp_ext, humid_ext = dht.readSensor()
 
+    # read from bme sensor
+    temp_alt, humid_alt = bme.readSensor()
+
     # read from onput pico sensor
     temp_f = readOnboardTemp()
 
@@ -122,10 +126,12 @@ while True:
         % (curTimestamp, temp_f, temp_ext, maxTemp, minTemp, humid_ext)
     )
 
-    mount_sd.logData(csvFilename, curTimestamp, temp_f, temp_ext, humid_ext)
+    mount_sd.logData(
+        csvFilename, curTimestamp, temp_f, temp_ext, humid_ext, temp_alt, humid_alt
+    )
 
     epd.updateDisplay(
-        startDateStr, startTimeStr, getLastUpdatedStr(t), max(temp_f, temp_ext), minTemp, maxTemp
+        startDateStr, startTimeStr, getLastUpdatedStr(t), temp_alt, minTemp, maxTemp
     )
 
     time.sleep(LOG_INTERVAL)
